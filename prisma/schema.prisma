@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,55 +9,130 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  name         String
-  apartments   Apartment[]   // Relation avec les appartements possédés
-  bookings     Booking[]     // Réservations effectuées par l'utilisateur
-  reviews      Review[]      // Avis laissés par l'utilisateur
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id         String      @id @default(uuid())
+  email      String      @unique
+  name       String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  apartments Apartment[]
+  bookings   Booking[]
+  reviews    Review[]
 }
 
 model Apartment {
-  id           String        @id @default(uuid())
-  name         String
-  address      String
-  city         City          @relation(fields: [cityId], references: [id])
-  cityId       String
-  owner        User          @relation(fields: [ownerId], references: [id])
-  ownerId      String
-  bookings     Booking[]     // Réservations pour cet appartement
-  reviews      Review[]      // Avis pour cet appartement
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id        String    @id @default(uuid())
+  name      String
+  address   String
+  cityId    String
+  ownerId   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  city      City      @relation(fields: [cityId], references: [id])
+  owner     User      @relation(fields: [ownerId], references: [id])
+  bookings  Booking[]
+  reviews   Review[]
 }
 
 model City {
-  id           String        @id @default(uuid())
-  name         String        @unique // Nom de la ville, unique pour éviter les doublons
-  apartments   Apartment[]   // Liste des appartements dans cette ville
+  id         String      @id @default(uuid())
+  name       String      @unique
+  apartments Apartment[]
 }
 
 model Booking {
-  id           String        @id @default(uuid())
-  startDate    DateTime      // Date de début de la réservation
-  endDate      DateTime      // Date de fin de la réservation
-  apartment    Apartment     @relation(fields: [apartmentId], references: [id])
-  apartmentId  String
-  user         User          @relation(fields: [userId], references: [id])
-  userId       String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id          String    @id @default(uuid())
+  startDate   DateTime
+  endDate     DateTime
+  apartmentId String
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  apartment   Apartment @relation(fields: [apartmentId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 }
 
 model Review {
-  id           String        @id @default(uuid())
-  rating       Int           // Note de l'utilisateur (exemple : 1 à 5)
-  comment      String?       // Commentaire facultatif
-  apartment    Apartment     @relation(fields: [apartmentId], references: [id])
-  apartmentId  String
-  user         User          @relation(fields: [userId], references: [id])
-  userId       String
-  createdAt    DateTime      @default(now())
+  id          String    @id @default(uuid())
+  rating      Int
+  comment     String?
+  apartmentId String
+  userId      String
+  createdAt   DateTime  @default(now())
+  apartment   Apartment @relation(fields: [apartmentId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Role {
+  id           Int           @id @default(autoincrement())
+  nom          String        @unique
+  utilisateurs Utilisateur[]
+}
+
+model Utilisateur {
+  id         Int        @id @default(autoincrement())
+  nom        String
+  prenom     String
+  email      String     @unique
+  motDePasse String
+  idRole     Int
+  supabaseId String     @unique  // Ajout de cette ligne pour faire le lien avec Supabase
+  commandes  Commande[]
+  role       Role       @relation(fields: [idRole], references: [id])
+}
+
+model Stock {
+  id                 Int               @id @default(autoincrement())
+  nom                String
+  description        String
+  quantiteDisponible Int
+  type               TypeStock
+  detailsCommande    DetailsCommande[]
+  mouvements         Mouvement[]
+}
+
+model Commande {
+  id              Int               @id @default(autoincrement())
+  idUtilisateur   Int
+  dateCommande    DateTime          @default(now())
+  statut          StatutCommande
+  utilisateur     Utilisateur       @relation(fields: [idUtilisateur], references: [id])
+  detailsCommande DetailsCommande[]
+  mouvements      Mouvement[]
+}
+
+model DetailsCommande {
+  idCommande Int
+  idStock    Int
+  quantite   Int
+  commande   Commande @relation(fields: [idCommande], references: [id])
+  stock      Stock    @relation(fields: [idStock], references: [id])
+
+  @@id([idCommande, idStock])
+}
+
+model Mouvement {
+  id            Int           @id @default(autoincrement())
+  idStock       Int
+  typeMouvement TypeMouvement
+  quantite      Int
+  dateMouvement DateTime      @default(now())
+  idCommande    Int?
+  commande      Commande?     @relation(fields: [idCommande], references: [id])
+  stock         Stock         @relation(fields: [idStock], references: [id])
+}
+
+enum TypeMouvement {
+  entree
+  sortie
+}
+
+enum TypeStock {
+  medicament
+  materiel
+}
+
+enum StatutCommande {
+  en_attente
+  validee
+  invalidee
 }

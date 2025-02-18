@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import BookingsList, { BookingListRef } from "@/components/bookings/bookingsList"
+import OrderList, { OrderListRef } from "@/components/orders/orderList"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import {
   Breadcrumb,
@@ -26,46 +26,71 @@ import {
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/context/AuthContext"
 import { Plus } from "lucide-react"
-import { BookingForm, BookingFormSchema } from "@/components/bookings/bookingForm"
+import { OrderForm } from "@/components/orders/orderForm"
 import { cn } from "@/lib/utils"
-import { z } from "zod"
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast'
 
 export default function Page() {
   const { user, loading } = useAuth()
-  const { toast } = useToast();
+  const { toast } = useToast()
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const orderListRef = useRef<OrderListRef>(null)
 
-  const bookingListRef = useRef<BookingListRef>(null);
-
-  const handleNewReservation = () => {
+  const handleNewOrder = () => {
     setIsDialogOpen(true)
   }
 
-  const handleFormSubmit = async (data: z.infer<typeof BookingFormSchema>) => {
+  const handleFormSubmit = async (formData: { idStock: string; quantite: number; description?: string }) => {
     try {
-      await fetch('/api/bookings', {
+      if (!user?.id) {
+        throw new Error("Utilisateur non connecté");
+      }
+  
+      console.log("Données du formulaire:", formData);
+  
+      const payload = {
+        idUtilisateur: 1, // À remplacer par l'ID réel de l'utilisateur
+        details: [{
+          idStock: parseInt(formData.idStock),
+          quantite: formData.quantite
+        }]
+      };
+  
+      console.log("Payload à envoyer:", payload);
+  
+      const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload)
       });
+  
+      const responseData = await response.json();
+      console.log("Réponse du serveur:", responseData);
+  
+      if (!response.ok) {
+        throw new Error(responseData.error || "Erreur lors de la création de la commande");
+      }
   
       setIsDialogOpen(false);
       toast({
-        title: 'Success',
-        description: 'Réservation créée',
+        title: 'Succès',
+        description: 'Commande créée avec succès',
         variant: 'default',
       });
-      bookingListRef.current?.refresh();
-
-    } catch (error) {
-      console.error("Erreur lors de la création de la réservation :", error);
-    }
-  };
+      orderListRef.current?.refresh();
   
+    } catch (error) {
+      console.error("Erreur détaillée:", error);
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Impossible de créer la commande',
+        variant: 'destructive',
+      });
+    }
+  }
 
   if (loading) return <p>Chargement...</p>
 
@@ -80,7 +105,7 @@ export default function Page() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Stock</BreadcrumbPage>
+                  <BreadcrumbPage>Gestion des commandes</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -91,11 +116,12 @@ export default function Page() {
             <CardHeader>
               <CardTitle>
                 <div className="flex justify-between">
-                  <h2>Produits en stock</h2>
+                  <h2>Liste des commandes</h2>
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button onClick={handleNewReservation}>
-                        <Plus /> Nouvelle commande
+                      <Button onClick={handleNewOrder}>
+                        <Plus className="mr-2 h-4 w-4" /> 
+                        Nouvelle commande
                       </Button>
                     </DialogTrigger>
                     <DialogContent
@@ -103,12 +129,13 @@ export default function Page() {
                         "sm:max-w-[600px] w-full max-h-[90vh]",
                         "overflow-y-auto"
                       )}
+                      
                     >
                       <DialogHeader>
-                        <DialogTitle>Nouveau médicament</DialogTitle>
+                        <DialogTitle>Nouvelle commande</DialogTitle>
                       </DialogHeader>
                       <div className="grid py-4 gap-4">
-                        <BookingForm onFormSubmit={handleFormSubmit} />
+                        <OrderForm onFormSubmit={handleFormSubmit} />
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -116,7 +143,7 @@ export default function Page() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <BookingsList ref={bookingListRef}/>
+              <OrderList ref={orderListRef}/>
             </CardContent>
           </Card>
         </div>

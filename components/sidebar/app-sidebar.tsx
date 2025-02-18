@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from 'next/navigation'
 import {
   BookOpen,
   Bot,
@@ -41,14 +42,14 @@ const data = {
   },
   navMain: [
     {
-      title: "Appartements",
-      url: "#",
+      title: "Stock",
+      url: "/dashboard/stock",
       icon: Building2,
       isActive: true
     },
     {
-      title: "Réservations",
-      url: "#",
+      title: "Commande",
+      url: "/dashboard/commande",
       icon: NotebookPen,
       isActive: true
     }
@@ -65,16 +66,18 @@ const data = {
       icon: CircleHelp,
     },
   ],
-  projects: [
-    
-  ],
+  projects: [],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-
+  const router = useRouter();
   const { user, loading } = useAuth();
 
   if (loading) return <p>Chargement...</p>;
+
+  const handleNavigation = (url: string) => {
+    router.push(url);
+  };
   
   return (
     <Sidebar variant="inset" {...props}>
@@ -88,7 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">AP3</span>
-                  <span className="truncate text-xs">Isitech</span>
+                  <span className="truncate text-xs">Gestionnaire</span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -96,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} onNavigate ={handleNavigation} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

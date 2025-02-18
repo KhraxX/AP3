@@ -33,8 +33,6 @@ const BookingList = forwardRef<BookingListRef>((_, ref) => {
   });
 
 
-
-
   // Mutation pour supprimer une réservation
   const deleteBookingMutation = useMutation({
     mutationFn: async (bookingId: string) => {
