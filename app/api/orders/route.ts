@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-// GET - Récupérer toutes les commandes
 export async function GET() {
   try {
     const commandes = await prisma.commande.findMany({

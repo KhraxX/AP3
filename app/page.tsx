@@ -16,7 +16,7 @@ export default function Home() {
           <TabsTrigger value="signup">Inscription</TabsTrigger>
         </TabsList>
         <TabsContent value="login">
-          <Login />
+          <SignUp />
         </TabsContent>
         <TabsContent value="signup">
           <SignUp />
