@@ -1,21 +1,12 @@
 "use client";
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const metadata: Metadata = {
   title: "AP3",
@@ -32,12 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
       >
-         <AuthProvider>
-            <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-            <Toaster />
-          </AuthProvider>    
+        <AuthProvider>
+          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );
